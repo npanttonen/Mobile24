@@ -2,6 +2,7 @@ const express = require('express');
 const { MongoClient } = require('mongodb');
 const app = express();
 const port = 3000;
+const authController = require('./authController');
 
 // MongoDB:n yhteystiedot
 const mongoDBUrl = "mongodb+srv://niko22020:testitesti12345@dbdatabase.n3d11.mongodb.net/?retryWrites=true&w=majority&appName=DBDataBase";
@@ -55,7 +56,7 @@ async function getAllPosts(){
 
 }
 //viestin lisäys
-async function sendPost(message) {
+async function sendPost(message, category) {
   try {
       await client.connect();
       const database = client.db("test"); // Vaihda tietokanta
@@ -64,7 +65,7 @@ async function sendPost(message) {
       // Lisää uusi postaus tietokantaan
       const timeStamp = generateIso8601Timestamp();
       console.log(timeStamp);
-      const result = await collection.insertOne({ "time" : timeStamp, "post" : message });
+      const result = await collection.insertOne({ "time" : timeStamp, "post" : message , "category" : category});
       console.log("Tuote lisätty:", result.insertedId);
       return result;
   } catch (error) {
@@ -95,16 +96,19 @@ async function sendComment(message, ogpostid) {
       await client.close(); // Sulje yhteys
   }
 }
+
+
 //restful funktiot
 // POST-pyyntö viestin vastaanottamiseksi
 app.post('/send-message', (req, res) => {
     console.log(req.body);
     const { message } = req.body;
+    const { category } = req.body;
 
     if (message) {
         console.log("Vastaanotettu viesti:", message);
         res.status(200).send({ success: true, message: 'Viesti vastaanotettu ja tulostettu!' });
-        sendPost(message);
+        sendPost(message, category);
     } else {
         console.log(message)
         res.status(400).send({ success: false, message: 'Viesti puuttuu!' });
@@ -136,6 +140,12 @@ app.get('/getposts', async (req, res) => {
       res.status(500).send({ success: false, message: 'Virhe postien hakemisessa!' });
   }
 });
+//login ja hae autentitikointi
+app.post('/login', authController.login);
+app.post('/data', authController.verifyToken, authController.postData);
+//kommentinpoisto
+app.delete('/deleteComment', authController.verifyToken, authController.deleteComment);
+app.delete('/deletepost', authController.verifyToken, authController.deletePost);
 // GET-pyyntö testisivulle
 app.get('/', (req, res) => {
     res.send('Tervetuloa Node.js-sovellukseen!');
