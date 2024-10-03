@@ -1,0 +1,18 @@
+npm install express jsonwebtoken bcryptjs
+
+postmanilla
+uusi postaus
+
+POST http://localhost:3000/send-message
+body->raw
+{
+  "message": "testi123",
+  "category": "ruokala"
+}
+
+Kommentin lisäys
+POST http://localhost:3000/send-comment
+{
+  "message": "kommentti tähän",
+  "ogpostid": "postauksen id johon vastataan"
+}
