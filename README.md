@@ -11,8 +11,3 @@ App - server logic
 
 figma desing
 https://www.figma.com/design/jKiUsKVtv1UNdUSygFBGlK/Untitled?node-id=2-320&node-type=canvas
-
-
-
-
-![image](https://github.com/user-attachments/assets/abd420f2-977c-4474-a44f-19fecc45542e)
