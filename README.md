@@ -1,6 +1,6 @@
 # Mobile24
 
-App - server logic
+App - server logic (GET funktioissa lähetetään tieto URL:ssä - POST funktioissa 'req.body')
 
 
 ![image](https://github.com/user-attachments/assets/0b04c300-f229-4f5f-a796-e8110d38ca0b)
