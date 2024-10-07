@@ -36,6 +36,26 @@ async function connectToMongoDB() {
     }
 }
 //hae postaukset
+async function getGatecories(){
+    try {
+        // Yhdistä MongoDB:hen
+        await client.connect();
+        console.log("Yhdistetty MongoDB:hen");
+
+        // Valitse tietokanta ja kokoelma
+        const database = client.db("test");
+        const collection = database.collection("categories");
+
+        // Testataan tietokantakyselyä
+        const results = await collection.find({}).toArray();
+        //console.log("Testataan tietokantakyselyä:", results);
+        return(results);
+    } catch (err) {
+        console.error("Virhe yhteydessä MongoDB:hen:", err);
+    }
+
+}
+//hae postaukset
 async function getAllPosts(){
     try {
         // Yhdistä MongoDB:hen
@@ -55,6 +75,27 @@ async function getAllPosts(){
     }
 
 }
+//get categoryposts
+async function getCategoryPosts(id){
+    try {
+        // Yhdistä MongoDB:hen
+        await client.connect();
+        console.log("Yhdistetty MongoDB:hen");
+
+        // Valitse tietokanta ja kokoelma
+        const database = client.db("test"); // Vaihda oma tietokanta
+        const collection = database.collection("posts"); // Vaihda oma kokoelma
+        console.log(typeof id);
+        const query = { categoryID: id };
+        console.log(query);
+        const results = await collection.find(query).toArray();
+        //console.log("Testataan tietokantakyselyä:", results);
+        return(results);
+    } catch (err) {
+        console.error("Virhe yhteydessä MongoDB:hen:", err);
+    }
+
+}
 //viestin lisäys
 async function sendPost(message, category) {
   try {
@@ -65,7 +106,7 @@ async function sendPost(message, category) {
       // Lisää uusi postaus tietokantaan
       const timeStamp = generateIso8601Timestamp();
       console.log(timeStamp);
-      const result = await collection.insertOne({ "time" : timeStamp, "post" : message , "category" : category});
+      const result = await collection.insertOne({ "time" : timeStamp, "post" : message , "categoryID" : category});
       console.log("Tuote lisätty:", result.insertedId);
       return result;
   } catch (error) {
@@ -100,22 +141,22 @@ async function sendComment(message, ogpostid) {
 
 //restful funktiot
 // POST-pyyntö viestin vastaanottamiseksi
-app.post('/send-message', (req, res) => {
+app.post('addpost', (req, res) => {
     console.log(req.body);
     const { message } = req.body;
-    const { category } = req.body;
+    const { categoryID } = req.body;
 
     if (message) {
         console.log("Vastaanotettu viesti:", message);
         res.status(200).send({ success: true, message: 'Viesti vastaanotettu ja tulostettu!' });
-        sendPost(message, category);
+        sendPost(message, categoryID);
     } else {
         console.log(message)
         res.status(400).send({ success: false, message: 'Viesti puuttuu!' });
     }
 });
 //kommentin lähetys
-app.post('/send-comment', (req, res) => {
+app.post('/addcomment', (req, res) => {
   console.log(req.body);
   const { message } = req.body;
   //ogpostid kommentti yhditetään alkuperäiseen postaukseen
@@ -140,6 +181,25 @@ app.get('/getposts', async (req, res) => {
       res.status(500).send({ success: false, message: 'Virhe postien hakemisessa!' });
   }
 });
+//get-pyyntö kategorioiden hakemiseen
+app.get('/getcategories', async (req, res) => {
+    try {
+        const results = await getGatecories();
+        console.log(results);
+        res.send(results);
+    } catch (error) {
+        console.error("Virhe kategorioiden hakemisessa:", error);
+        res.status(500).send({ success: false, message: 'Virhe kategorioiden hakemisessa!' });
+    }
+  });
+// kategorian hakemiseen reittiparametrin avulla
+app.get('/getcategoryposts/:id', async (req, res) => {
+    const categoryId = req.params.id; // Hae ID URL:stä
+    const respond = await getCategoryPosts(categoryId);
+    res.send(respond);
+
+});
+
 //login ja hae autentitikointi
 app.post('/login', authController.login);
 app.post('/data', authController.verifyToken, authController.postData);
@@ -150,7 +210,8 @@ app.delete('/deletepost', authController.verifyToken, authController.deletePost)
 app.get('/', (req, res) => {
     res.send('Tervetuloa Node.js-sovellukseen!');
 });
-
+//demoa varten
+app.get('/getcategoriesWithToken', authController.verifyToken, authController.getCategoriesWithToken);
 // GET-pyyntö testisivulle
 app.get('/testpost', (req, res) => {
   //sendPost();

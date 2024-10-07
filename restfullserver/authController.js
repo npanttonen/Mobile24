@@ -99,3 +99,36 @@ async function deletePostById(id) {
         await client.close();
     }
   }
+//demnstrointia varten
+//hae postaukset
+async function getGatecoriesToken(){
+    try {
+        // Yhdistä MongoDB:hen
+        await client.connect();
+        console.log("Yhdistetty MongoDB:hen");
+
+        // Valitse tietokanta ja kokoelma
+        const database = client.db("test");
+        const collection = database.collection("categories");
+
+        // Testataan tietokantakyselyä
+        const results = await collection.find({}).toArray();
+        //console.log("Testataan tietokantakyselyä:", results);
+        return(results);
+    } catch (err) {
+        console.error("Virhe yhteydessä MongoDB:hen:", err);
+    }
+
+}
+//demonstrointia varten
+// kategorian hakemiseen reittiparametrin avulla
+exports.getCategoriesWithToken = async (req, res) => {
+    try {
+        const results = await getGatecoriesToken();
+        console.log(results);
+        res.send(results);
+    } catch (error) {
+        console.error("Virhe kategorioiden hakemisessa:", error);
+        res.status(500).send({ success: false, message: 'Virhe kategorioiden hakemisessa!' });
+    }
+  };
