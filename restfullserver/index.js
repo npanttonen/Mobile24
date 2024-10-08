@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const app = express();
 const port = 3000;
 const authController = require('./authController');
@@ -137,8 +137,44 @@ async function sendComment(message, ogpostid) {
       await client.close(); // Sulje yhteys
   }
 }
+async function getallpostcomments(id) {
+    try {
+        // Yhdistä MongoDB:hen
+        await client.connect();
+        console.log("Yhdistetty MongoDB:hen");
 
+        // Valitse tietokanta ja kokoelma
+        const database = client.db("test"); // Vaihda oma tietokanta
+        const collection = database.collection("comments"); // Vaihda oma kokoelma
+        console.log(typeof id);
+        const query = { ogpostid: id };
+        console.log(query);
+        const results = await collection.find(query).toArray();
+        //console.log("Testataan tietokantakyselyä:", results);
+        return(results);
+    } catch (err) {
+        console.error("Virhe yhteydessä MongoDB:hen:", err);
+    }
+}
+//hae yksi postaus
+async function getpost(id) {
+    try {
+        // Yhdistä MongoDB:hen
+        await client.connect();
+        console.log("Yhdistetty MongoDB:hen");
 
+        // Valitse tietokanta ja kokoelma
+        const database = client.db("test"); // Vaihda oma tietokanta
+        const collection = database.collection("posts"); // Vaihda oma kokoelma
+        console.log(typeof id);
+        const query = { _id: new ObjectId(id) };
+        const results = await collection.find({ _id: new ObjectId(id) }).toArray();
+        //console.log("Testataan tietokantakyselyä:", results);
+        return(results);
+    } catch (err) {
+        console.error("Virhe yhteydessä MongoDB:hen:", err);
+    }
+}
 //restful funktiot
 // POST-pyyntö viestin vastaanottamiseksi
 app.post('addpost', (req, res) => {
@@ -199,7 +235,18 @@ app.get('/getcategoryposts/:id', async (req, res) => {
     res.send(respond);
 
 });
-
+//kaikki kommentit
+app.get('/getallpostcomments/:id', async (req, res) => {
+    const postID = req.params.id;
+    const respond = await getallpostcomments(postID);
+    res.send (respond);
+});
+//yksi postaus
+app.get('/getpost/:id', async (req, res) => {
+    const postID = req.params.id;
+    const respond = await getpost(postID);
+    res.send (respond);
+});
 //login ja hae autentitikointi
 app.post('/login', authController.login);
 app.post('/data', authController.verifyToken, authController.postData);
