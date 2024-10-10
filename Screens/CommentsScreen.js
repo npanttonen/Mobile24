@@ -1,7 +1,7 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { View, Text, StyleSheet, FlatList, Animated, PanResponder } from "react-native";
 
-
+// InPostView component handles the post and comments display with swipe gesture
 const InPostView = ({ commentdata, postdata, navigation }) => {
   const pan = useRef(new Animated.ValueXY()).current;
 
@@ -49,7 +49,8 @@ const InPostView = ({ commentdata, postdata, navigation }) => {
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <View style={styles.commentBox}>
-            <Text style={styles.commentText}>{item.comment}</Text>
+            <Text style={styles.commentText}>{item.time}</Text>
+            <Text style={styles.commentText}>{item.post}</Text>
           </View>
         )}
       />
@@ -57,13 +58,27 @@ const InPostView = ({ commentdata, postdata, navigation }) => {
   );
 };
 
-const Comments = ({ navigation }) => {
-  const [post, setPost] = useState({ post: "Sample post" });
-  const [comments, setComments] = useState([
-    { _id: "comment1", comment: "Comment 1" },
-    { _id: "comment2", comment: "Comment 2" },
-    // Add other comments here
-  ]);
+// Comments component retrieves the post and comments data from navigation route
+const Comments = ({ route, navigation }) => {
+  const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+
+  // Use useEffect to set post and comments from route.params
+  useEffect(() => {
+    if (route.params) {
+      const { post, comments } = route.params; // Retrieve post and comments from params
+      setPost(post);
+      setComments(comments);
+    }
+  }, [route.params]);
+
+  if (!post) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.text}>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

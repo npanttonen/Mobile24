@@ -21,9 +21,10 @@ const Home = ({ navigation }) => {
             loadCategories();
         }, []); // Empty dependency array ensures this runs only on mount
 
-        const goToCategory = () => {
-            navigation.navigate("Posts");
+        const goToCategory = (categoryId) => {
+          navigation.navigate("Posts", { categoryId }); // Pass the categoryId as a parameter
         };
+        
 
         const LogOut = () => {
             navigation.navigate("LogIn");
@@ -38,11 +39,15 @@ const Home = ({ navigation }) => {
         data={categories}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.CategoryButton} onPress={goToCategory}>
+          <TouchableOpacity
+            style={styles.CategoryButton}
+            onPress={() => goToCategory(item.categoryID)} // Pass the categoryId on press
+          >
             <Text style={styles.categoryText}>{item.categoryName}</Text>
           </TouchableOpacity>
         )}
       />
+
       <TouchableOpacity style={styles.LogOutButton} onPress={LogOut}>
         <Text style={styles.LogOutButtonText}>LOGOUT</Text>
       </TouchableOpacity>
