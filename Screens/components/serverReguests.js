@@ -144,3 +144,30 @@ export const createPost = async (message, categoryID) => {
     throw error; // Heitetään virhe eteenpäin käsittelyä varten
   }
 };
+//kommentin teko
+const API_COMMENT_URL = 'http://192.168.50.47:3000/addcomment'; // Muuta tämä API-osoitteesi mukaan
+export const createComment = async (message, ogpostid) => {
+  try {
+    const response = await fetch(`${API_COMMENT_URL}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message,
+        ogpostid,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to create post');
+    }
+
+    return data; // Palauta onnistunut vastaus
+  } catch (error) {
+    console.error('Error creating post:', error);
+    throw error; // Heitetään virhe eteenpäin käsittelyä varten
+  }
+};
