@@ -1,0 +1,7 @@
+Installations
+
+npx react-native init YOUR_APP_NAME --version 0.74.5
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-all.zip
+
+npm install @react-navigation/native @react-navigation/native-stack
+npm install react-native-screens react-native-safe-area-context 
