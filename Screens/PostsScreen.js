@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { FlatList, View, Text, Animated, PanResponder, StyleSheet, TouchableOpacity } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import { getPosts, getAllPostComments } from "./components/serverReguests";
 
 // Create a separate component for each post item
@@ -59,10 +60,15 @@ const Posts = ({ navigation, route }) => {
     }
   };
 
-  useEffect(() => {
-    console.log("Selected Category ID:", categoryId); // Now you can use this ID to fetch posts
-    loadPosts(categoryId);
-  }, [categoryId]);
+  const openCreatePostScreen = () => {
+    navigation.navigate('CreatePost', { categoryId }); // Navigoi CreatePost-sivulle
+  };
+  
+useFocusEffect(
+    useCallback(() => {
+      loadPosts(categoryId); // Fetch posts whenever the screen comes back into focus
+    }, [categoryId])
+  );
 
   const backButton = () => {
     navigation.navigate("Home");
@@ -82,6 +88,10 @@ const Posts = ({ navigation, route }) => {
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => <PostItem item={item} navigation={navigation} />}
       />
+      {/* postauksen lisääminen */}
+      <TouchableOpacity style={styles.createPostButton} onPress={openCreatePostScreen}>
+        <Text style={styles.createPostButtonText}>+ Create New Post</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -124,6 +134,19 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 32,
     marginBottom: 10,
+  },
+  createPostButton: {
+    backgroundColor: '#007BFF',
+    padding: 15,
+    borderRadius: 10,
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+  },
+  createPostButtonText: {
+    color: 'white',
+    fontSize: 18,
+    textAlign: 'center',
   }
 });
 

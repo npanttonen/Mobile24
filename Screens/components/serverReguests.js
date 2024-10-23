@@ -1,6 +1,6 @@
 export async function login (username, password) {
     try {
-      const response = await fetch('http://192.168.1.142:3000/login', {
+      const response = await fetch('http://172.31.78.22:3000/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json', // Set content type to JSON
@@ -24,7 +24,7 @@ export async function login (username, password) {
 
   export async function getCategories (token) {
     try {
-      const response = await fetch('http://192.168.1.142:3000/getcategoriesWithToken', {
+      const response = await fetch('http://172.31.78.22:3000/getcategoriesWithToken', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json', // Set content type to JSON
@@ -48,14 +48,14 @@ export async function login (username, password) {
 
   export async function getPosts (id) {
     try {
-      const response = await fetch('http://192.168.1.142:3000/getcategoryposts/' + id, {
+      const response = await fetch('http://172.31.78.22:3000/getcategoryposts/' + id, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json', // Set content type to JSON
           //'x-access-token': token,
         }
       });
-      console.log("sends" + 'http://192.168.1.142:3000/getcategoryposts/' + id)
+      console.log("sends" + 'http://172.31.78.22:3000/getcategoryposts/' + id)
       if (!response.ok) {
         const errorText = await response.text(); // Get error message if response is not ok
         throw new Error(errorText);
@@ -72,7 +72,7 @@ export async function login (username, password) {
 
   export async function getAllPostComments(postID) {
     try {
-      const response = await fetch('http://192.168.1.142:3000/getallpostcomments/' + postID, {
+      const response = await fetch('http://172.31.78.22:3000/getallpostcomments/' + postID, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json', // Set content type to JSON
@@ -95,7 +95,7 @@ export async function login (username, password) {
 
   export async function getPost(postID) {
     try {
-      const response = await fetch('http://192.168.1.142:3000/getpost/' + postID, {
+      const response = await fetch('http://172.31.78.22:3000/getpost/' + postID, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json', // Set content type to JSON
@@ -114,5 +114,36 @@ export async function login (username, password) {
       console.error('Error during fetching post:', error.message); // Log any errors
       throw error; // Rethrow the error for further handling if needed
     }
+  };
+
+  //postauksenteko
+const API_URL = 'http://172.31.78.22:3000/addpost'; // Muuta tämä API-osoitteesi mukaan
+
+export const createPost = async (message, categoryID) => {
+  try {
+    const response = await fetch(`${API_URL}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message,
+        categoryID,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to create post');
+    }
+
+    return data; // Palauta onnistunut vastaus
+  } catch (error) {
+    console.error('Error creating post:', error);
+    throw error; // Heitetään virhe eteenpäin käsittelyä varten
   }
+};
   
+
+

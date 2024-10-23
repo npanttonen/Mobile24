@@ -7,6 +7,7 @@ import LogIn from './Screens/LogInScreen';
 import Home from './Screens/HomeScreen';
 import Posts from './Screens/PostsScreen';
 import Comments from './Screens/CommentsScreen';
+import CreatePost from './Screens/CreatePost';
 
 enableScreens();
 
@@ -36,6 +37,11 @@ const App = () => {
           <Stack.Screen 
             name="Comments" 
             component={Comments} 
+            options={{ headerShown: false }} // Hide the header for Comments screen
+          />
+          <Stack.Screen 
+            name="CreatePost" 
+            component={CreatePost} 
             options={{ headerShown: false }} // Hide the header for Comments screen
           />
         </Stack.Navigator>
