@@ -1,12 +1,18 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+// Posts in screen 
+
+// React and react-native imports 
+import React, { useState, useRef, useCallback } from "react";
 import { FlatList, View, Text, Animated, PanResponder, StyleSheet, TouchableOpacity } from "react-native";
-import { useFocusEffect } from '@react-navigation/native';
-import { getPosts, getAllPostComments } from "./components/serverReguests";
+import { useFocusEffect } from '@react-navigation/native'; 
+
+// Database and server reguest functions imported from the components folder
+import { getPosts, getAllPostComments } from "./components/serverReguests"; // Import functions for fetching posts and comments
 
 // Create a separate component for each post item
 const PostItem = ({ item, navigation }) => {
-  const pan = useRef(new Animated.ValueXY()).current;
+  const pan = useRef(new Animated.ValueXY()).current; // Initialize pan value for animations
 
+  // Set up the pan responder to handle swipe gestures
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -39,39 +45,45 @@ const PostItem = ({ item, navigation }) => {
     })
   ).current;
 
+  // Post boxes have post time and post content
   return (
     <Animated.View style={[pan.getLayout(), styles.box]} {...panResponder.panHandlers}>
-      <Text style={styles.text}>{item._id}</Text>
-      <Text style={styles.text}>{item.post}</Text>
+      <Text style={styles.text}>{item._id}</Text> 
+      <Text style={styles.text}>{item.post}</Text> 
     </Animated.View>
   );
 };
 
+// Main Posts component
 const Posts = ({ navigation, route }) => {
-  const [posts, setPosts] = useState([]);
-  const { categoryId } = route.params; // Get categoryId from navigation params
+  const [posts, setPosts] = useState([]); // State to store posts
+  const { categoryId, categoryName } = route.params; // Get categoryId and categoryName from navigation params
 
+  // Function to load posts based on category ID
   const loadPosts = async (id) => {
     try {
-      const postData = await getPosts(id);
-      setPosts(postData);
+      const postData = await getPosts(id); // Fetch posts for the given category ID
+      setPosts(postData); // Update state with fetched posts
     } catch (error) {
       console.error('Error loading posts:', error);
     }
   };
 
+  // Function to navigate to CreatePost screen
   const openCreatePostScreen = () => {
-    navigation.navigate('CreatePost', { categoryId }); // Navigoi CreatePost-sivulle
+    navigation.navigate('CreatePost', { categoryId }); // Navigate to CreatePost screen with categoryId
   };
   
-useFocusEffect(
+  // Use focus effect to load posts whenever the screen comes back into focus
+  useFocusEffect(
     useCallback(() => {
-      loadPosts(categoryId); // Fetch posts whenever the screen comes back into focus
+      loadPosts(categoryId); // Fetch posts for the current category
     }, [categoryId])
   );
 
+  // Function to handle navigation back to homescreen
   const backButton = () => {
-    navigation.navigate("Home");
+    navigation.navigate("Home"); 
   };
 
   return (
@@ -80,7 +92,7 @@ useFocusEffect(
         <TouchableOpacity onPress={backButton}>
           <Text style={styles.backButton}>{'\u2190'}</Text>
         </TouchableOpacity>
-        <Text style={styles.h2}>Category 1</Text>
+        <Text style={styles.h2}>{categoryName}</Text>
       </View>
       <View style={styles.horizontalLine} />
       <FlatList
@@ -150,6 +162,4 @@ const styles = StyleSheet.create({
   }
 });
 
-
 export default Posts;
-

@@ -1,73 +1,103 @@
+// Home screen 
+
+// React and react-native imports 
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
-import { useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
-import { useAuth } from './components/AuthContext'; // Import the useAuth hook
+import { useFocusEffect } from '@react-navigation/native'; 
+
+// Database and server reguest function imported from the components folder
 import { getCategories } from "./components/serverReguests";
-import { FetchUser, fetchSavedPost } from "./components/db";
+import { FetchUser, fetchSavedPost, deleteUser } from "./components/db"; 
 
+// Home main function
 const Home = ({ navigation }) => {
-    const { savedtoken } = useAuth(); // Access savedtoken from Auth context
-    const [categories, setCategories] = useState([]);
-    const [savedpost, setSavedPost] = useState('');
-    const [savedCategory, setSavedCategory] = useState('');
+    const [savedtoken, setToken] = useState(''); // State to hold saved token
+    const [categories, setCategories] = useState([]); // State for categories
+    const [savedpost, setSavedPost] = useState(''); // State for saved post
+    const [savedCategoryId, setsavedCategoryId] = useState(''); // State for saved category ID
 
+    // Fetch saved post from the database
     const getSavedPost = async () => {
         try {
             const users = await FetchUser(); // Fetch the user from the database
 
+            // Check if any user exists
             if (users.length === 0) {
-                alert('No user found to save the post!');
+                alert('No user found to save the post!'); // Alert if no user found
                 return;
             }
 
-            const username = users[0].username;
-            const savedpostArray = await fetchSavedPost(username); // Fetch saved post
+            const username = users[0].username; // Get username from fetched user
+            const savedpostArray = await fetchSavedPost(username); // Fetch saved post for the user
 
+            // Check if any saved posts were found
             if (savedpostArray.length > 0) {
-                setSavedCategory(savedpostArray[0].category);
-                setSavedPost(savedpostArray[0].savedPost);
+                console.log(savedpostArray[0].category); // Log category of the first saved post
+                setsavedCategoryId(savedpostArray[0].category); // Set saved category ID
+                setSavedPost(savedpostArray[0].savedPost); // Set saved post
             } else {
-                console.log('No saved posts found for this user.');
+                console.log('No saved posts found for this user.'); // Log if no saved posts found
             }
         } catch (error) {
-            console.error('Error fetching saved post:', error);
-            alert('Error fetching saved post. Please try again.');
+            console.error('Error fetching saved post:', error); // Log any error
+            alert('Error fetching saved post. Please try again.'); // Alert user of error
         }
     };
 
+    // Load categories from the server
     const loadCategories = async () => {
         try {
-            const categorydata = await getCategories(savedtoken);
-            console.log(categorydata);
-            setCategories(categorydata);
+            const users = await FetchUser(); // Fetch the user from the database
+
+            // Check if any user exists
+            if (users.length === 0) {
+                alert('No user found to save the post!'); // Alert if no user found
+                return;
+            }
+            const token = users[0].token; // Get token from fetched user
+            const categorydata = await getCategories(token); // Fetch categories using the token
+            setCategories(categorydata); // Set fetched categories
         } catch (error) {
-            console.error('Error loading categories:', error);
+            console.error('Error loading categories:', error); // Log any error
         }
     };
 
     // Use useFocusEffect to load categories and saved posts when the screen is focused
     useFocusEffect(
         React.useCallback(() => {
-            loadCategories();
-            getSavedPost();
-
-            return () => {
-                // Clean up if needed
-            };
-        }, [savedtoken]) // Dependencies can be added here as needed
+            loadCategories(); 
+            getSavedPost(); 
+        }, []) // Empty array ensures this runs only when the screen is focused
     );
 
-    const goToCategory = (categoryId) => {
-        navigation.navigate("Posts", { categoryId }); // Pass the categoryId as a parameter
+    // Navigate to category screen
+    const goToCategory = (categoryId, categoryName) => {
+        navigation.navigate("Posts", { categoryId, categoryName }); // Pass category ID and name to the Posts screen
     };
 
-    const LogOut = () => {
-        navigation.navigate("LogIn");
+    // Log out function
+    const LogOut = async () => {
+        try {
+            const users = await FetchUser(); // Fetch the user from the database
+
+            // Check if "Remember Me" is not selected
+            if (users[0].rememberMe === 0) {
+                await deleteUser(); // Delete user data
+            }
+            navigation.navigate("LogIn"); // Navigate to Login screen
+        } catch (error) {
+            console.error('Error deleting user:', error); 
+        }
     };
 
+    // Continue creating post function
     const continueCreatingPost = () => {
-        navigation.navigate('CreatePost', { savedCategory, shouldLoadSavedPost: true });
+        navigation.navigate('CreatePost', { 
+            categoryId: savedCategoryId,     // Pass savedCategoryId as the CategoryId
+            shouldLoadSavedPost: true      // Set this flag to true to load the saved post
+        });
     };
+
 
     return (
         <View style={styles.container}>
@@ -81,7 +111,7 @@ const Home = ({ navigation }) => {
                 renderItem={({ item }) => (
                     <TouchableOpacity
                         style={styles.CategoryButton}
-                        onPress={() => goToCategory(item.categoryID)} // Pass the categoryId on press
+                        onPress={() => goToCategory(item.categoryID, item.categoryName)} // Pass the CategoryId on press
                     >
                         <Text style={styles.categoryText}>{item.categoryName}</Text>
                     </TouchableOpacity>
@@ -90,19 +120,27 @@ const Home = ({ navigation }) => {
             <Text style={styles.h1}>Saved post</Text>
             <View style={styles.horizontalLine} />
 
+            {/* If we have saved post make a button to continue making it */}
             {savedpost ? (
                 <TouchableOpacity
                     style={styles.savedpost}
                     onPress={continueCreatingPost}
                 >
-                    <Text style={styles.text}>{savedCategory}</Text>
+                    {categories.length > 0 && savedCategoryId ? (
+                        <Text style={styles.text}>
+                            {categories[parseInt(savedCategoryId) - 1]?.categoryName || 'Category not found'}
+                        </Text>
+                    ) : (
+                        <Text style={styles.text}>Loading category...</Text>
+                    )}
                     <Text style={styles.text}>{savedpost}</Text>
                 </TouchableOpacity>
             ) : (
-                <Text style={styles.text}>No saved post</Text>
+                <Text style={styles.text}>No saved post</Text> // If no saved post display this text
             )}
 
-            <TouchableOpacity style={styles.LogOutButton} onPress={LogOut}>
+                
+            <TouchableOpacity style={styles.LogOutButton} onPress={LogOut}> 
                 <Text style={styles.LogOutButtonText}>LOGOUT</Text>
             </TouchableOpacity>
         </View>

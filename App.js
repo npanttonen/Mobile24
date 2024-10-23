@@ -1,8 +1,17 @@
+// App.js
+
+// React and react-native imports 
 import React from "react";
 import { NavigationContainer } from '@react-navigation/native';
+
+
+// Stack navigation installations:
+// npm install @react-navigation/native @react-navigation/native-stack
+// npm install react-native-screens react-native-safe-area-context 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { enableScreens } from 'react-native-screens';
-import { AuthProvider } from './Screens/components/AuthContext'; // Import the AuthProvider
+
+// All screens imported to this main App.js file
 import LogIn from './Screens/LogInScreen';
 import Home from './Screens/HomeScreen';
 import Posts from './Screens/PostsScreen';
@@ -15,10 +24,8 @@ const Stack = createNativeStackNavigator();
 
 const App = () => {
   return (
-    // Wrap NavigationContainer with AuthProvider
-    <AuthProvider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="LogIn">
+        <Stack.Navigator initialRouteName="LogIn"> {/* Starting screen */}
           <Stack.Screen 
             name="LogIn" 
             component={LogIn} 
@@ -46,7 +53,6 @@ const App = () => {
           />
         </Stack.Navigator>
       </NavigationContainer>
-    </AuthProvider>
   );
 }
 

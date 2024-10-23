@@ -1,18 +1,27 @@
+// Log in screen 
+
+// React and react-native imports 
 import React, { useState, useEffect } from "react";
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from "react-native";
-import CheckBox from '@react-native-community/checkbox'; // Import CheckBox
-import { login } from "./components/serverReguests";
-import { useAuth } from './components/AuthContext';
-import { init, addUser, FetchUser } from './components/db'; // Import database functions
 
+// Checkbox installation: npm install @react-native-community/checkbox --save
+import CheckBox from '@react-native-community/checkbox'; // Import CheckBox
+
+// Database and server reguest function imported from the components folder
+import { login } from "./components/serverReguests";
+import { init, addUser, FetchUser } from './components/db'; 
+
+
+// Log in main function
 const LogIn = ({ navigation }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false); // State for "Remember Me"
-    const { setToken } = useAuth(); // Use the Auth context to set token
 
-    // Fetch user details from SQLite if available and rememberMe is true
+    // Initialise database and fetch possible saved userdata from that database when u start app
     useEffect(() => {
+
+        // Database initilalising 
         init()
             .then(() => {
                 console.log('Database initialized successfully!');
@@ -21,37 +30,49 @@ const LogIn = ({ navigation }) => {
                 console.log('Database initialization failed: ' + err);
             });
 
+        // fetch the possible saved userdata
         const fetchUserData = async () => {
             try {
                 const users = await FetchUser(); // Fetch user data from SQLite
+                console.log("Fetched user data: ", JSON.stringify(users)); // Log the fetched data
+        
+                // Check if the result is an array and has at least one user
                 if (users.length > 0) {
                     const user = users[0]; // Assume only one user is stored
+                    console.log("Fetched user: ", user); // Log the user object
+                    
+                    // Check the rememberMe property safely
                     if (user.rememberMe === 1) {
                         setUsername(user.username);
                         setPassword(user.password);
                         setRememberMe(true); // Set the checkbox to checked if user chose to remember
                     }
+                } else {
+                    console.log("No user found or user array is empty.");
                 }
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
             }
         };
+        
 
         fetchUserData();
     }, []); // Empty dependency array ensures this runs once when component mounts
 
+
+    //
     const handleLogin = async () => {
         try {
             // Login and get token from serverReguests
             const token = await login(username, password);
             console.log('Authenticated, token:', token);
-            setToken(token);
+            
 
             // Check if "Remember Me" is selected and save user info to database
             if (rememberMe === true) {
-                await addUser(username, password, 1); // Store username, password, and rememberMe flag
+                await addUser(username, password, token, 1); // Store username, password, and rememberMe flag
             } else {
-                await addUser(username, "", 0); // Clear the password if rememberMe is not selected
+                await addUser(username, "", token, 0); // Clear the password if rememberMe is not selected
             }
 
             // Navigate to Home screen

@@ -1,6 +1,11 @@
+// Log in screen 
+
+// React and react-native imports 
 import React, { useState, useCallback } from 'react';
 import { View, TextInput, Button, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
+import { useFocusEffect } from '@react-navigation/native'
+
+// Server reguests and db functions imported 
 import { createPost } from './components/serverReguests';
 import { FetchUser, savePost, fetchSavedPost } from './components/db';
 
@@ -8,6 +13,7 @@ const CreatePost = ({ navigation, route }) => {
   const { categoryId, shouldLoadSavedPost } = route.params; // Destructure shouldLoadSavedPost
   const [postContent, setPostContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const [savedCategory, setSavedCategory] = useState('');
 
   // Function to fetch the saved post for the current user
   const loadSavedPost = async () => {

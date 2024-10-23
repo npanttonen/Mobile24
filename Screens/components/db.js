@@ -1,4 +1,9 @@
+// Functions for hadling the local database ( SQL lite)
+
 import { openDatabase } from 'react-native-sqlite-storage';
+// Sql lite installation:
+// npm uninstall -g react-native-cli @react-native-community/cli
+// npm install react-native-sqlite-storage
 
 var db = openDatabase({ name: 'savedData.db' });
 
@@ -7,10 +12,11 @@ export const init = () => {
     return new Promise((resolve, reject) => {
         
         db.transaction((tx) => {
+            //tx.executeSql('DROP TABLE IF EXISTS user', []); //use this to clear tables if needed 
+            //tx.executeSql('DROP TABLE IF EXISTS savedPost', []); //use this to clear tables if needed 
             // Create savedPost table
-            //tx.executeSql('DROP TABLE IF EXISTS savedPost', []); //uncomment this if needed - sometimes it is good to empty the table
             tx.executeSql(
-                'CREATE TABLE IF NOT EXISTS savedPost (savedPost TEXT NOT NULL, category TEXT NOT NULL, username TEXT NOT NULL);',
+                'CREATE TABLE IF NOT EXISTS savedPost (id INTEGER PRIMARY KEY AUTOINCREMENT, savedPost TEXT NOT NULL, category TEXT NOT NULL, username TEXT NOT NULL);',
                 [],
                 () => {
                     console.log('savedPost table created or already exists');
@@ -21,7 +27,7 @@ export const init = () => {
 
             // Create user table
             tx.executeSql(
-                'CREATE TABLE IF NOT EXISTS user (username TEXT NOT NULL, password TEXT, rememberMe BOOLEAN);',
+                'CREATE TABLE IF NOT EXISTS user (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, password TEXT, token TEXT NOT NULL, rememberMe BOOLEAN);',
                 [],
                 () => resolve(),
                 (_, err) => reject(err)
@@ -30,38 +36,25 @@ export const init = () => {
     });
 };
 
-// Save post to the database
-export const savePost = (savedPost, category, username) => {
-    console.log('Types:', {
-        savedPostType: typeof savedPost,
-        categoryType: typeof category,
-        usernameType: typeof username
-    });
+// Functions for user table
+
+// Fetch user from the database
+export const FetchUser = () => {
     return new Promise((resolve, reject) => {
         db.transaction((tx) => {
-            // Delete existing saved posts
             tx.executeSql(
-                'DELETE FROM savedPost', 
+                'SELECT * FROM user;', 
                 [],
                 (tx, result) => {
-                    console.log('Existing saved posts deleted:', result);
-                    // Insert new post
-                    tx.executeSql(
-                        'INSERT INTO savedPost (savedPost, category, username) VALUES (?, ?, ?);',
-                        [savedPost, category, username],
-                        (tx, result) => {
-                            console.log('Post inserted successfully:', result);
-                            resolve(); // Resolve promise
-                        },
-                        (tx, err) => {
-                            console.error('Error during INSERT execution:', err);
-                            reject(err); // Reject promise
-                        }
-                    );
+                    const users = [];
+                    for (let i = 0; i < result.rows.length; i++) {
+                        users.push(result.rows.item(i)); // Push each user to the array
+                    }
+                    resolve(users); // Resolve with the array of users
                 },
                 (tx, err) => {
-                    console.error('Error during DELETE execution:', err);
-                    reject(err); // Reject promise
+                    console.error('Error fetching user data:', err);
+                    reject(err); // Reject with an error
                 }
             );
         });
@@ -70,19 +63,22 @@ export const savePost = (savedPost, category, username) => {
 
 
 // Add user to the database
-export const addUser = (username, password, rememberMe) => {
+export const addUser = (username, password, token, rememberMe) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx) => {
             tx.executeSql(
-                'DELETE FROM user', 
+                'DELETE FROM user', //delete all rows from user to ensure we have only one user logged in
                 [],
                 () => {
                     console.log('Existing user data deleted');
                     tx.executeSql(
-                        'INSERT INTO user (username, password, rememberMe) VALUES (?, ?, ?);', 
-                        [username, password, rememberMe ? 1 : 0],
-                        () => resolve(),
+                        'INSERT INTO user (username, password, token, rememberMe) VALUES (?, ?, ?, ?);', 
+                        [username, password, token, rememberMe ? 1 : 0],
+                        () => {
+                            resolve();
+                        },
                         (_, err) => reject(err)
+                        
                     );
                 },
                 (_, err) => reject(err)
@@ -91,86 +87,69 @@ export const addUser = (username, password, rememberMe) => {
     });
 };
 
-// Update fish data (adjusted for your context)
-export const updateFish = (id, breed, weight) => {
+// Delete user from the database
+export const deleteUser = () => {
     return new Promise((resolve, reject) => {
         db.transaction((tx) => {
             tx.executeSql(
-                'UPDATE fishTable SET breed = ?, weight = ? WHERE id = ?;',
-                [breed, weight, id],
-                () => resolve(),
-                (_, err) => reject(err)
+                'DELETE FROM user', 
+                [],
+                () => {
+                    console.log('User data deleted');
+                    resolve();
+                },
+                (_, err) => {
+                    console.error('Error deleting user:', err);
+                    reject(err);
+                }
             );
         });
     });
 };
 
-// Delete fish from the table
-export const deleteFish = (id) => {
-    return new Promise((resolve, reject) => {
-        db.transaction((tx) => {
-            tx.executeSql(
-                'DELETE FROM fishTable WHERE id = ?;',
-                [id],
-                () => resolve(),
-                (_, err) => reject(err)
-            );
-        });
-    });
-};
 
-// Fetch saved posts for a specific user
+// Fetch the saved post
 export const fetchSavedPost = (username) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx) => {
             tx.executeSql(
-                'SELECT * FROM savedPost WHERE username = ?;',
+                'SELECT * FROM savedPost WHERE username = ?;', 
                 [username],
                 (tx, result) => {
-                    const rows = result.rows;
-                    if (rows.length > 0) {
-                        let savedPosts = [];
-                        for (let i = 0; i < rows.length; i++) {
-                            savedPosts.push(rows.item(i)); // Extract each row
-                        }
-                        resolve(savedPosts); // Resolving the array of posts
+                    if (result.rows.length > 0) {
+                        const savedPost = result.rows.item(0); // Return the saved post
+                        resolve(savedPost); // Resolving the post object
                     } else {
-                        resolve([]); // No posts found
+                        resolve(null); // No saved post found
                     }
                 },
                 (tx, err) => {
-                    console.error('Error fetching saved posts:', err);
-                    reject(err);
+                    console.error('Error fetching saved post:', err);
+                    reject(err); // Reject with an error
                 }
             );
         });
     });
 };
 
-// Fetch all users from the database
-export const FetchUser = () => {
+// Save post to the database
+export const savePost = (savedPost, category, username) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx) => {
+            // Use REPLACE to either insert a new row or replace the existing one
             tx.executeSql(
-                'SELECT * FROM user', 
-                [], 
+                'REPLACE INTO savedPost (id, savedPost, category, username) VALUES (?, ?, ?, ?);',
+                [1, savedPost, category, username], 
                 (tx, result) => {
-                    const rows = result.rows;
-                    if (rows.length > 0) {
-                        let users = [];
-                        for (let i = 0; i < rows.length; i++) {
-                            users.push(rows.item(i)); // Extract each row
-                        }
-                        resolve(users); // Resolve the array of users
-                    } else {
-                        resolve([]); // No users found
-                    }
-                }, 
+                    console.log('Post inserted or replaced successfully:', result);
+                    resolve(result); // Resolve promise with result
+                },
                 (tx, err) => {
-                    console.error('Error fetching user data:', err);
-                    reject(err);
+                    console.error('Error during REPLACE execution:', err.message || err);
+                    reject(err); // Reject promise with error
                 }
             );
         });
     });
 };
+
