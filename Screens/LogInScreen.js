@@ -1,68 +1,63 @@
 import React, { useState, useEffect } from "react";
-import { View, TextInput, TouchableOpacity, Text, StyleSheet} from "react-native";
-import CheckBox from '@react-native-community/checkbox';
-
+import { View, TextInput, TouchableOpacity, Text, StyleSheet } from "react-native";
+import CheckBox from '@react-native-community/checkbox'; // Import CheckBox
 import { login } from "./components/serverReguests";
 import { useAuth } from './components/AuthContext';
-import { init, addUser, FetchUser } from './components/db'; // Import FetchUser
-
+import { init, addUser, FetchUser } from './components/db'; // Import database functions
 
 const LogIn = ({ navigation }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [rememberMe, setRememberMe] = useState(false); // State for checkbox
-    const { setToken } = useAuth(); // Use the Auth context
+    const [rememberMe, setRememberMe] = useState(false); // State for "Remember Me"
+    const { setToken } = useAuth(); // Use the Auth context to set token
 
     // Fetch user details from SQLite if available and rememberMe is true
     useEffect(() => {
-      init()
-      .then(() => {
-          console.log('Database creation succeeded!');
-      })
-      .catch((err) => {
-          console.log('Database IS NOT initialized! ' + err);
-      });
-  
-      const fetchUserData = async () => {
-          try {
-              const users = await FetchUser(); // Fetch user data from SQLite
-              if (users.length > 0) {
-                  const user = users[0]; // Assuming we have at least one user
-                  if (user.rememberMe === 1) {
-                      setUsername(user.username);
-                      setPassword(user.password);
-                      setRememberMe(true); // Set the checkbox to checked
-                  }
-              }
-          } catch (error) {
-              console.error('Failed to fetch user data:', error);
-          }
-      };
-  
-      fetchUserData();
-  }, []); // Empty dependency array ensures this runs once when component mounts
-  
+        init()
+            .then(() => {
+                console.log('Database initialized successfully!');
+            })
+            .catch((err) => {
+                console.log('Database initialization failed: ' + err);
+            });
+
+        const fetchUserData = async () => {
+            try {
+                const users = await FetchUser(); // Fetch user data from SQLite
+                if (users.length > 0) {
+                    const user = users[0]; // Assume only one user is stored
+                    if (user.rememberMe === 1) {
+                        setUsername(user.username);
+                        setPassword(user.password);
+                        setRememberMe(true); // Set the checkbox to checked if user chose to remember
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch user data:', error);
+            }
+        };
+
+        fetchUserData();
+    }, []); // Empty dependency array ensures this runs once when component mounts
 
     const handleLogin = async () => {
         try {
-            // login and get token from serverReguests-login
+            // Login and get token from serverReguests
             const token = await login(username, password);
-            
             console.log('Authenticated, token:', token);
             setToken(token);
 
-            // Check if the "Remember Me" is selected
+            // Check if "Remember Me" is selected and save user info to database
             if (rememberMe === true) {
-              addUser(username, password, 1)
-            }
-            else{
-              addUser(username, "", 0)
+                await addUser(username, password, 1); // Store username, password, and rememberMe flag
+            } else {
+                await addUser(username, "", 0); // Clear the password if rememberMe is not selected
             }
 
-            // Navigate to home screen
+            // Navigate to Home screen
             navigation.navigate("Home");
         } catch (error) {
-            // Handle errors here
+            // Handle login errors
             console.error('Login failed:', error);
         }
     };
@@ -106,10 +101,10 @@ const styles = StyleSheet.create({
     Formcontainer: {
         height: "60%",
         width: "80%",
-        marginTop: "20%", 
+        marginTop: "20%",
         backgroundColor: "black",
         alignSelf: "center",
-        justifyContent: 'center', 
+        justifyContent: 'center',
         borderRadius: 20
     },
     input: {

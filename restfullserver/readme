@@ -1,0 +1,106 @@
+npm install express jsonwebtoken bcryptjs
+
+url-osoitteet ja esimerkit
+postauksiin
+
+#uusi postaus, method post
+/addpost
+Raw body
+{
+  "message": "testi12399",
+  "categoryID": "2"
+}
+
+#kommentinlisäys, method post, ogpostid kohtaan postauksen id johon vastataan
+/addcomment
+Raw body
+{
+  "message": "kommentti123",
+  "ogpostid": "6704fc83f700a16e6305cb46"
+}
+
+#kaikki postaukset, method get
+/getposts
+esimerkki json palautuksesta
+[
+    {
+        "_id": "66fe883c89e3b639bdba51dd",
+        "time": "2024-10-03T12:04:12.109Z",
+        "post": "testi1",
+        "categoryID": "1"
+    },
+    {
+        "_id": "66fe886289e3b639bdba51de",
+        "time": "2024-10-03T12:04:50.056Z",
+        "post": "testi12",
+        "categoryID": "1"
+    ...
+
+#kaikki kategoriat, method get
+/getcategories
+esimerkki json vastaus
+[
+    {
+        "_id": "67038482c092e314fe353e8e",
+        "categoryID": "1",
+        "categoryName": "Category1"
+    },...
+
+#postaukset tietystä kategoriasta url osoitteella
+/getcategoryposts/:id
+esim: /getcategoryposts/2
+
+#postauksen kaikki kommentit
+/getallpostcomments/:id
+esim: /getallpostcomments/66fcf4837c597b84e25ef3d0
+
+esimerkki json vastaus:
+[{"_id":"66fd30a1fa1bf46145086f48","time":"2024-10-02T11:38:09.623Z","ogpostid":"66fcf4837c597b84e25ef3d0","post":"Postaan eeppiseen!"},
+{"_id":"66fd32dbfa1bf46145086f49","time":"2024-10-02T11:47:39.301Z","ogpostid":"66fcf4837c597b84e25ef3d0","post":"Toinen kommentti"}]
+
+#hae yksi postaus id:llä
+/getpost/:id
+/getpost/66fe883c89e3b639bdba51dd
+esimerkki json:
+[{"_id":"66fe883c89e3b639bdba51dd","time":"2024-10-03T12:04:12.109Z","post":"testi1","categoryID":"1"}]
+
+#esimerkit kirjautumiseen ja niitä vaativiin functioihin
+
+#token avaimen hakeminen, method pos
+/login
+raw body
+{
+    "username": "testuser",
+    "password": "password"
+}
+json vastaus:
+{
+    "auth": true,
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzI4MzY5NTQwLCJleHAiOjE3Mjg0NTU5NDB9.Ch8SJnSdYjI_8g5A_SbGaBW3dw1aPea5NEP7fONtCaM"
+}
+
+#poista yksi kommentti, method delete
+/deleteComment
+raw body:
+{
+    "_id": "66fe82bdd932f32a1b"
+}
+headers:
+Key: x-access-token
+Value: token avain
+
+#poiista postaus ja siihen liittyvät kommentit
+/deletepost
+raw body:
+{
+    "_id": "66fe82bdd932f32a1b"
+}
+headers:
+Key: x-access-token
+Value: token avain
+
+#demoa varten kategoriat, method get
+/getcategoriesWithToken
+headers:
+Key: x-access-token
+Value: token avain

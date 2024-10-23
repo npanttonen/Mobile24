@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
 import { useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
 import { useAuth } from './components/AuthContext'; // Import the useAuth hook
@@ -6,9 +6,9 @@ import { getCategories } from "./components/serverReguests";
 import { FetchUser, fetchSavedPost } from "./components/db";
 
 const Home = ({ navigation }) => {
-    const { savedtoken } = useAuth(); // Access setToken from Auth context
+    const { savedtoken } = useAuth(); // Access savedtoken from Auth context
     const [categories, setCategories] = useState([]);
-    const [savedpost, savepost] = useState('');
+    const [savedpost, setSavedPost] = useState('');
     const [savedCategory, setSavedCategory] = useState('');
 
     const getSavedPost = async () => {
@@ -21,11 +21,11 @@ const Home = ({ navigation }) => {
             }
 
             const username = users[0].username;
-            const savedpostArray = await fetchSavedPost(username); // fetch saved post
+            const savedpostArray = await fetchSavedPost(username); // Fetch saved post
 
             if (savedpostArray.length > 0) {
                 setSavedCategory(savedpostArray[0].category);
-                savepost(savedpostArray[0].savedPost);
+                setSavedPost(savedpostArray[0].savedPost);
             } else {
                 console.log('No saved posts found for this user.');
             }
@@ -51,7 +51,6 @@ const Home = ({ navigation }) => {
             loadCategories();
             getSavedPost();
 
-            // Optionally, you can return a cleanup function if needed
             return () => {
                 // Clean up if needed
             };
@@ -67,50 +66,47 @@ const Home = ({ navigation }) => {
     };
 
     const continueCreatingPost = () => {
-      navigation.navigate('CreatePost', { savedCategory, shouldLoadSavedPost: true });
-  }
-  
+        navigation.navigate('CreatePost', { savedCategory, shouldLoadSavedPost: true });
+    };
 
-  return (
-    <View style={styles.container}>
-        <Text style={styles.h1}>Home Screen</Text>
-        <View style={styles.horizontalLine} />
-        <FlatList
-            contentContainerStyle={{ paddingTop: 20, paddingLeft: 40 }}
-            numColumns={2}
-            data={categories}
-            keyExtractor={(item) => item._id}
-            renderItem={({ item }) => (
+    return (
+        <View style={styles.container}>
+            <Text style={styles.h1}>Home Screen</Text>
+            <View style={styles.horizontalLine} />
+            <FlatList
+                contentContainerStyle={{ paddingTop: 20, paddingLeft: 40 }}
+                numColumns={2}
+                data={categories}
+                keyExtractor={(item) => item._id}
+                renderItem={({ item }) => (
+                    <TouchableOpacity
+                        style={styles.CategoryButton}
+                        onPress={() => goToCategory(item.categoryID)} // Pass the categoryId on press
+                    >
+                        <Text style={styles.categoryText}>{item.categoryName}</Text>
+                    </TouchableOpacity>
+                )}
+            />
+            <Text style={styles.h1}>Saved post</Text>
+            <View style={styles.horizontalLine} />
+
+            {savedpost ? (
                 <TouchableOpacity
-                    style={styles.CategoryButton}
-                    onPress={() => goToCategory(item.categoryID)} // Pass the categoryId on press
+                    style={styles.savedpost}
+                    onPress={continueCreatingPost}
                 >
-                    <Text style={styles.categoryText}>{item.categoryName}</Text>
+                    <Text style={styles.text}>{savedCategory}</Text>
+                    <Text style={styles.text}>{savedpost}</Text>
                 </TouchableOpacity>
+            ) : (
+                <Text style={styles.text}>No saved post</Text>
             )}
-        />
-        <Text style={styles.h1}>Saved post</Text>
-        <View style={styles.horizontalLine} />
 
-        {savedpost ? (
-            <TouchableOpacity 
-                style={styles.savedpost} 
-                onPress={continueCreatingPost}
-            >
-                <Text style={styles.text}>{savedCategory}</Text>
-                <Text style={styles.text}>{savedpost}</Text>
+            <TouchableOpacity style={styles.LogOutButton} onPress={LogOut}>
+                <Text style={styles.LogOutButtonText}>LOGOUT</Text>
             </TouchableOpacity>
-        ) : (
-            <Text style={styles.text}>No saved post</Text>
-        )}
-
-        <TouchableOpacity style={styles.LogOutButton} onPress={LogOut}>
-            <Text style={styles.LogOutButtonText}>LOGOUT</Text>
-        </TouchableOpacity>
-    </View>
-  );
-
-
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
