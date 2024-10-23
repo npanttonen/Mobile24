@@ -29,8 +29,9 @@ const Home = ({ navigation }) => {
 
             const username = users[0].username; // Get username from fetched user
             const savedpostArray = await fetchSavedPost(username); // Fetch saved post for the user
-
+            console.log(savedpostArray)
             // Check if any saved posts were found
+            
             if (savedpostArray.length > 0) {
                 console.log(savedpostArray[0].category); // Log category of the first saved post
                 setsavedCategoryId(savedpostArray[0].category); // Set saved category ID

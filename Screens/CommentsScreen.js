@@ -1,3 +1,6 @@
+// Comments screen 
+
+// React and react-native imports 
 import React, { useRef, useState, useEffect } from "react";
 import { View, Text, StyleSheet, FlatList, Animated, PanResponder, TouchableOpacity, TextInput } from "react-native";
 import { createComment, getAllPostComments } from './components/serverReguests';
@@ -6,6 +9,23 @@ import { createComment, getAllPostComments } from './components/serverReguests';
 // InPostView component handles the post and comments display with swipe gesture
 const InPostView = ({ commentdata, postdata, navigation }) => {
   const pan = useRef(new Animated.ValueXY()).current;
+
+  //aikasuomen aikavyöhykkeen mukaan
+  const convertToFinnishTime = (time) => {
+    const options = {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Europe/Helsinki',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    };
+    // Luo Date-objekti
+    const date = new Date(time); 
+    // Palauta aika Suomen aikavyöhykkeen mukaan
+    return date.toLocaleString('fi-FI', options);
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -39,7 +59,7 @@ const InPostView = ({ commentdata, postdata, navigation }) => {
       style={[pan.getLayout(), styles.container]} // Apply drag layout to the view
       {...panResponder.panHandlers} // Attach the PanResponder
     >
-      <Text style={styles.text}>{postdata.time}</Text>
+      <Text style={styles.text}>{convertToFinnishTime(postdata.time)}</Text>
       <Text style={styles.text}>{postdata.post}</Text>
       <View style={styles.horizontalLine} />
       <FlatList
@@ -51,7 +71,7 @@ const InPostView = ({ commentdata, postdata, navigation }) => {
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <View style={styles.commentBox}>
-            <Text style={styles.commentText}>{item.time}</Text>
+            <Text style={styles.commentText}>{convertToFinnishTime(item.time)}</Text>
             <Text style={styles.commentText}>{item.post}</Text>
           </View>
         )}
@@ -92,8 +112,7 @@ const Comments = ({ route, navigation }) => {
         alert("Please enter a comment!"); // Varoitus tyhjälle kentälle
     }
 };
-
-
+  
   if (!post) {
     return (
       <View style={styles.container}>

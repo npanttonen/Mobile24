@@ -108,7 +108,7 @@ export const deleteUser = () => {
 };
 
 
-// Fetch the saved post
+// Fetch the saved posts for the given username
 export const fetchSavedPost = (username) => {
     return new Promise((resolve, reject) => {
         db.transaction((tx) => {
@@ -116,21 +116,21 @@ export const fetchSavedPost = (username) => {
                 'SELECT * FROM savedPost WHERE username = ?;', 
                 [username],
                 (tx, result) => {
-                    if (result.rows.length > 0) {
-                        const savedPost = result.rows.item(0); // Return the saved post
-                        resolve(savedPost); // Resolving the post object
-                    } else {
-                        resolve(null); // No saved post found
+                    const savedPosts = []; // Initialize an array to hold saved posts
+                    for (let i = 0; i < result.rows.length; i++) {
+                        savedPosts.push(result.rows.item(i)); // Push each saved post to the array
                     }
+                    resolve(savedPosts); // Resolve with the array of saved posts
                 },
                 (tx, err) => {
-                    console.error('Error fetching saved post:', err);
+                    console.error('Error fetching saved posts:', err);
                     reject(err); // Reject with an error
                 }
             );
         });
     });
 };
+
 
 // Save post to the database
 export const savePost = (savedPost, category, username) => {

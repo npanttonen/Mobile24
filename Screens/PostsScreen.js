@@ -44,12 +44,28 @@ const PostItem = ({ item, navigation }) => {
       },
     })
   ).current;
-
+    //aikasuomen aikavyöhykkeen mukaan
+    const convertToFinnishTime = (time) => {
+      const options = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        timeZone: 'Europe/Helsinki',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      };
+      // Luo Date-objekti
+      const date = new Date(time); 
+      // Palauta aika Suomen aikavyöhykkeen mukaan
+      return date.toLocaleString('fi-FI', options);
+    };
+  
   // Post boxes have post time and post content
   return (
     <Animated.View style={[pan.getLayout(), styles.box]} {...panResponder.panHandlers}>
-      <Text style={styles.text}>{item._id}</Text> 
-      <Text style={styles.text}>{item.post}</Text> 
+      <Text style={styles.text}>{convertToFinnishTime(item.time)}</Text>
+      <Text style={styles.text}>{item.post}</Text>
     </Animated.View>
   );
 };
@@ -162,4 +178,6 @@ const styles = StyleSheet.create({
   }
 });
 
+
 export default Posts;
+

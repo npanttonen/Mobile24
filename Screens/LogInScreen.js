@@ -34,16 +34,14 @@ const LogIn = ({ navigation }) => {
         const fetchUserData = async () => {
             try {
                 const users = await FetchUser(); // Fetch user data from SQLite
-                console.log("Fetched user data: ", JSON.stringify(users)); // Log the fetched data
         
-                // Check if the result is an array and has at least one user
+                // Check if the result has at least one user
                 if (users.length > 0) {
-                    const user = users[0]; // Assume only one user is stored
-                    console.log("Fetched user: ", user); // Log the user object
+                    const user = users[0]; 
                     
-                    // Check the rememberMe property safely
+                    // Check the rememberMe property
                     if (user.rememberMe === 1) {
-                        setUsername(user.username);
+                        setUsername(user.username);  
                         setPassword(user.password);
                         setRememberMe(true); // Set the checkbox to checked if user chose to remember
                     }
@@ -56,11 +54,11 @@ const LogIn = ({ navigation }) => {
         };
         
 
-        fetchUserData();
+        fetchUserData(); 
     }, []); // Empty dependency array ensures this runs once when component mounts
 
 
-    //
+    // Send login data to server and get auth token and move to home screen 
     const handleLogin = async () => {
         try {
             // Login and get token from serverReguests
@@ -72,7 +70,7 @@ const LogIn = ({ navigation }) => {
             if (rememberMe === true) {
                 await addUser(username, password, token, 1); // Store username, password, and rememberMe flag
             } else {
-                await addUser(username, "", token, 0); // Clear the password if rememberMe is not selected
+                await addUser(username, "", token, 0); // Dont save the password if rememberMe is not selected
             }
 
             // Navigate to Home screen
@@ -85,6 +83,7 @@ const LogIn = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
+            {/* Log in form */}
             <View style={styles.Formcontainer}>
                 <TextInput
                     style={styles.input}
@@ -109,6 +108,8 @@ const LogIn = ({ navigation }) => {
                     />
                     <Text style={styles.checkboxLabel}>Remember Me</Text>
                 </View>
+
+                {/* Handle login button using TouchableOpacity */}
                 <TouchableOpacity style={styles.Button} onPress={handleLogin}>
                     <Text style={styles.buttonText}>Login</Text>
                 </TouchableOpacity>
