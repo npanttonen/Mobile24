@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { View, Text, StyleSheet, FlatList, Animated, PanResponder, TouchableOpacity, TextInput } from "react-native";
 import { createComment, getAllPostComments } from './components/serverReguests';
 
+
 // InPostView component handles the post and comments display with swipe gesture
 const InPostView = ({ commentdata, postdata, navigation }) => {
   const pan = useRef(new Animated.ValueXY()).current;
@@ -65,6 +66,7 @@ const Comments = ({ route, navigation }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
 
+
   // Use useEffect to set post and comments from route.params
   useEffect(() => {
     if (route.params) {
@@ -73,6 +75,7 @@ const Comments = ({ route, navigation }) => {
       setComments(comments);
     }
   }, [route.params]);
+
   //kommentin käsittely
   const handleCommentSubmit = () => {
     if (newComment.trim()) {
@@ -90,6 +93,7 @@ const Comments = ({ route, navigation }) => {
     }
 };
 
+
   if (!post) {
     return (
       <View style={styles.container}>
@@ -105,6 +109,7 @@ const Comments = ({ route, navigation }) => {
         commentdata={comments}
         navigation={navigation}
       />
+
       {/* inputökenttä kommentille */}
       <TextInput
         style={styles.input}
@@ -118,19 +123,12 @@ const Comments = ({ route, navigation }) => {
       <TouchableOpacity style={styles.button} onPress={handleCommentSubmit}>
         <Text style={styles.buttonText}>Submit</Text>
       </TouchableOpacity>
+
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#242424",
-  },
-  text: {
-    color: "white",
-    padding: 15,
-  },
   horizontalLine: {
     borderBottomColor: '#6F6F6F',
     borderBottomWidth: 1,
@@ -146,6 +144,7 @@ const styles = StyleSheet.create({
   },
   commentText: {
     color: "white",
+
   },
   container: {
     flex: 1,
@@ -175,6 +174,7 @@ const styles = StyleSheet.create({
     color: "white",
     marginBottom: 10, // Space between input field and button
 },
+
 });
 
 export default Comments;
