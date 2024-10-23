@@ -1,9 +1,28 @@
 import React, { useRef, useState, useEffect } from "react";
-import { View, Text, StyleSheet, FlatList, Animated, PanResponder } from "react-native";
+import { View, Text, StyleSheet, FlatList, Animated, PanResponder, TouchableOpacity, TextInput } from "react-native";
+import { createComment, getAllPostComments } from './components/serverReguests';
+
 
 // InPostView component handles the post and comments display with swipe gesture
 const InPostView = ({ commentdata, postdata, navigation }) => {
   const pan = useRef(new Animated.ValueXY()).current;
+
+  //aikasuomen aikavyöhykkeen mukaan
+  const convertToFinnishTime = (time) => {
+    const options = {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Europe/Helsinki',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    };
+    // Luo Date-objekti
+    const date = new Date(time); 
+    // Palauta aika Suomen aikavyöhykkeen mukaan
+    return date.toLocaleString('fi-FI', options);
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -37,7 +56,7 @@ const InPostView = ({ commentdata, postdata, navigation }) => {
       style={[pan.getLayout(), styles.container]} // Apply drag layout to the view
       {...panResponder.panHandlers} // Attach the PanResponder
     >
-      <Text style={styles.text}>{postdata.time}</Text>
+      <Text style={styles.text}>{convertToFinnishTime(postdata.time)}</Text>
       <Text style={styles.text}>{postdata.post}</Text>
       <View style={styles.horizontalLine} />
       <FlatList
@@ -49,7 +68,7 @@ const InPostView = ({ commentdata, postdata, navigation }) => {
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <View style={styles.commentBox}>
-            <Text style={styles.commentText}>{item.time}</Text>
+            <Text style={styles.commentText}>{convertToFinnishTime(item.time)}</Text>
             <Text style={styles.commentText}>{item.post}</Text>
           </View>
         )}
@@ -62,6 +81,8 @@ const InPostView = ({ commentdata, postdata, navigation }) => {
 const Comments = ({ route, navigation }) => {
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+
 
   // Use useEffect to set post and comments from route.params
   useEffect(() => {
@@ -71,6 +92,23 @@ const Comments = ({ route, navigation }) => {
       setComments(comments);
     }
   }, [route.params]);
+
+  //kommentin käsittely
+  const handleCommentSubmit = () => {
+    if (newComment.trim()) {
+      const createdComment = createComment(newComment, post._id);
+      if (createdComment) {
+        setComments(prevComments => [
+          ...prevComments,
+          { _id: createdComment._id, post: newComment, time: new Date().toLocaleString() }
+        ]);
+        setNewComment(""); // Tyhjentää syöttökentän
+      }
+
+    } else {
+        alert("Please enter a comment!"); // Varoitus tyhjälle kentälle
+    }
+};
 
   if (!post) {
     return (
@@ -87,19 +125,26 @@ const Comments = ({ route, navigation }) => {
         commentdata={comments}
         navigation={navigation}
       />
+
+      {/* inputökenttä kommentille */}
+      <TextInput
+        style={styles.input}
+        placeholder="Write a comment..."
+        placeholderTextColor="#888"
+        value={newComment}
+        onChangeText={setNewComment} // Päivittää tilan
+      />
+
+      {/* submit */}
+      <TouchableOpacity style={styles.button} onPress={handleCommentSubmit}>
+        <Text style={styles.buttonText}>Submit</Text>
+      </TouchableOpacity>
+
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#242424",
-  },
-  text: {
-    color: "white",
-    padding: 15,
-  },
   horizontalLine: {
     borderBottomColor: '#6F6F6F',
     borderBottomWidth: 1,
@@ -115,7 +160,37 @@ const styles = StyleSheet.create({
   },
   commentText: {
     color: "white",
-  }
+
+  },
+  container: {
+    flex: 1,
+    backgroundColor: "#242424",
+    justifyContent: "space-between", // Tämä pitää sisällön erillään ja asettaa painikkeen alas
+  },
+  text: {
+    color: "white",
+    padding: 15,
+    fontSize: 20,
+  },
+  button: {
+    backgroundColor: '#007BFF', // Blue button
+    padding: 15,
+    borderRadius: 10,
+    alignSelf: 'center', // Center button horizontally
+},
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    textAlign: 'center',
+  },
+  input: {
+    backgroundColor: "#333",
+    borderRadius: 10,
+    padding: 10,
+    color: "white",
+    marginBottom: 10, // Space between input field and button
+},
+
 });
 
 export default Comments;

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, TextInput, Button, StyleSheet, Text, TouchableOpacity} from 'react-native';
+import { View, TextInput, Button, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
 import { createPost } from './components/serverReguests';
 import { FetchUser, savePost, fetchSavedPost } from './components/db';
@@ -13,7 +13,6 @@ const CreatePost = ({ navigation, route }) => {
   const loadSavedPost = async () => {
     try {
       const users = await FetchUser(); // Fetch the user from the database
-
       if (users.length === 0) {
         console.log('No user found to fetch saved post!');
         return;
@@ -48,7 +47,7 @@ const CreatePost = ({ navigation, route }) => {
       return;
     }
 
-    setLoading(true);
+    setLoading(true); // Show loading state
 
     try {
       await createPost(postContent, categoryId);
@@ -64,14 +63,12 @@ const CreatePost = ({ navigation, route }) => {
   const SaveMyPost = async () => {
     try {
       const users = await FetchUser(); // Fetch the user from the database
-
       if (users.length === 0) {
         alert('No user found to save the post!');
         return;
       }
 
       const username = users[0].username; // Assuming 'username' is the field in the user table
-      
       await savePost(postContent, categoryId, username); // Save the post with postContent, categoryId, and the username
       backButton();
       alert('Post saved successfully!');
@@ -82,18 +79,18 @@ const CreatePost = ({ navigation, route }) => {
   };
 
   const backButton = () => {
-    navigation.goBack(); 
+    navigation.goBack();
   };
 
   return (
     <View style={styles.container}>
-        <View style={styles.headerContainer}>
+      <View style={styles.headerContainer}>
         <TouchableOpacity onPress={backButton}>
           <Text style={styles.backButton}>{'\u2190'}</Text>
         </TouchableOpacity>
         <Text style={styles.header}>Create a New Post</Text>
       </View>
-      
+
       <TextInput
         style={styles.input}
         placeholder="Write your post..."
@@ -102,6 +99,7 @@ const CreatePost = ({ navigation, route }) => {
         value={postContent}
         onChangeText={setPostContent}
       />
+
       <Button title="Submit" onPress={handleSubmit} disabled={loading} />
       <Button title="Save post" onPress={SaveMyPost} />
     </View>
@@ -135,10 +133,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   backButton: {
-    color: "white",
+    color: 'white',
     fontSize: 32,
     marginBottom: 27,
-    marginRight: 20
+    marginRight: 20,
   },
 });
 
